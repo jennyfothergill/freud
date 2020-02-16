@@ -1,8 +1,9 @@
 #ifndef MANAGED_ARRAY_H
 #define MANAGED_ARRAY_H
 
-#include <cstring>
+#include <algorithm>
 #include <memory>
+#include <numeric>
 #include <sstream>
 #include <vector>
 
@@ -89,13 +90,7 @@ public:
         if (force || (m_data.use_count() > 1) || (new_shape != shape()))
         {
             m_shape = std::make_shared<std::vector<size_t>>(new_shape);
-
-            m_size = std::make_shared<size_t>(1);
-            for (int i = m_shape->size() - 1; i >= 0; --i)
-            {
-                (*m_size) *= (*m_shape)[i];
-            }
-
+            m_size = std::make_shared<size_t>(product_of_all(new_shape));
             m_data = std::shared_ptr<std::shared_ptr<T>>(
                 new std::shared_ptr<T>(new T[size()], std::default_delete<T[]>()));
         }
@@ -107,7 +102,7 @@ public:
     {
         if (size() != 0)
         {
-            memset((void*) get(), 0, sizeof(T) * size());
+            std::fill_n(get(), size(), T());
         }
     }
 
@@ -235,12 +230,7 @@ public:
      */
     static inline std::vector<size_t> getMultiIndex(std::vector<size_t> shape, size_t index)
     {
-        size_t cur_prod = 1;
-        for (auto it = shape.begin(); it != shape.end(); ++it)
-        {
-            cur_prod *= *it;
-        }
-
+        size_t cur_prod(product_of_all(shape));
         std::vector<size_t> indices(shape.size());
         for (unsigned int i = 0; i < shape.size(); ++i)
         {
@@ -300,17 +290,7 @@ public:
             }
         }
 
-        // In getting the linear bin, we must iterate over bins in reverse
-        // order to build up the value of cur_prod because each subsequent axis
-        // contributes less according to row-major ordering.
-        size_t cur_prod = 1;
-        size_t idx = 0;
-        for (int i = indices.size() - 1; i >= 0; --i)
-        {
-            idx += indices[i] * cur_prod;
-            cur_prod *= (*m_shape)[i];
-        }
-        return idx;
+        return getIndex(*m_shape, indices);
     }
 
     //! Return a copy of this array.
@@ -322,8 +302,7 @@ public:
     ManagedArray copy() const
     {
         ManagedArray newarray(shape());
-        for (unsigned int i = 0; i < size(); ++i)
-            newarray[i] = get()[i];
+        std::copy_n(get(), size(), newarray.get());
         return newarray;
     }
 
@@ -348,6 +327,12 @@ private:
         std::vector<size_t> tmp = buildIndex(indices...);
         tmp.insert(tmp.begin(), static_cast<size_t>(index));
         return tmp;
+    }
+
+    //! Helper function for products of vectors
+    inline static size_t product_of_all(const std::vector<size_t>& shape)
+    {
+        return std::accumulate(shape.begin(), shape.end(), 1, std::multiplies<size_t>());
     }
 
     std::shared_ptr<std::shared_ptr<T>> m_data;   //!< Pointer to array.
