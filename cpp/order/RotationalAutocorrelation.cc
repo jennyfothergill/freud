@@ -4,7 +4,6 @@
 #include "RotationalAutocorrelation.h"
 
 #include "utils.h"
-#include <math.h>
 
 /*! \file RotationalAutocorrelation.cc
     \brief Implements the RotationalAutocorrelation class.
