@@ -46,11 +46,14 @@ struct NeighborBond
         {
             return query_point_idx < n.query_point_idx;
         }
-        if (point_idx != n.point_idx)
+        else if (point_idx != n.point_idx)
         {
             return point_idx < n.point_idx;
         }
-        return weight < n.weight;
+        else
+        {
+            return weight < n.weight;
+        }
     }
 
     bool less_as_tuple(const NeighborBond& n) const
@@ -59,15 +62,18 @@ struct NeighborBond
         {
             return query_point_idx < n.query_point_idx;
         }
-        if (point_idx != n.point_idx)
+        else if (point_idx != n.point_idx)
         {
             return point_idx < n.point_idx;
         }
-        if (weight != n.weight)
+        else if (weight != n.weight)
         {
             return weight < n.weight;
         }
-        return distance < n.distance;
+        else
+        {
+            return distance < n.distance;
+        }
     }
 
     bool less_as_distance(const NeighborBond& n) const
