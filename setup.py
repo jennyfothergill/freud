@@ -353,6 +353,9 @@ sources_in_all = [
 # Dict keys should be specified as the module name without
 # "freud.", i.e. not the fully qualified name.
 extra_module_sources = dict(
+    diffraction=[
+        os.path.join("cpp", "density", "RDF.cc"),
+    ],
     environment=[
         os.path.join("cpp", "util", "diagonalize.cc"),
     ],
